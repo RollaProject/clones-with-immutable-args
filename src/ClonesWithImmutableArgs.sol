@@ -5,25 +5,28 @@ pragma solidity ^0.8.4;
 /// @title ClonesWithImmutableArgs
 /// @author wighawag, zefram.eth
 /// @notice Enables creating clone contracts with immutable args
+/// @dev extended by will@0xsplits.xyz to add receive() without DELEGECALL & create2 support
+/// (h/t WyseNynja https://github.com/wighawag/clones-with-immutable-args/issues/4)
 library ClonesWithImmutableArgs {
     error CreateFail();
 
-    /// @notice Creates a clone proxy of the implementation contract, with immutable args
+    /// @notice Creates a clone proxy of the implementation contract with immutable args
     /// @dev data cannot exceed 65535 bytes, since 2 bytes are used to store the data length
     /// @param implementation The implementation contract to clone
     /// @param data Encoded immutable args
-    /// @return instance The address of the created clone
-    function clone(address implementation, bytes memory data)
+    /// @return ptr The ptr to the clone's bytecode
+    /// @return creationSize The size of the clone to be created
+    function cloneCreationCode(address implementation, bytes memory data)
         internal
-        returns (address payable instance)
+        pure
+        returns (uint256 ptr, uint256 creationSize)
     {
         // unrealistic for memory ptr or data length to exceed 256 bits
         unchecked {
             uint256 extraLength = data.length + 2; // +2 bytes for telling how much data there is appended to the call
-            uint256 creationSize = 0x71 + extraLength;
+            creationSize = 0x71 + extraLength;
             uint256 runSize = creationSize - 10;
             uint256 dataPtr;
-            uint256 ptr;
             // solhint-disable-next-line no-inline-assembly
             assembly {
                 ptr := mload(0x40)
@@ -159,13 +162,97 @@ library ClonesWithImmutableArgs {
             assembly {
                 mstore(copyPtr, shl(240, extraLength))
             }
-            // solhint-disable-next-line no-inline-assembly
-            assembly {
-                instance := create(0, ptr, creationSize)
-            }
-            if (instance == address(0)) {
-                revert CreateFail();
-            }
         }
+    }
+
+    /// @notice Creates a clone proxy of the implementation contract with immutable args
+    /// @dev data cannot exceed 65535 bytes, since 2 bytes are used to store the data length
+    /// @param implementation The implementation contract to clone
+    /// @param data Encoded immutable args
+    /// @return instance The address of the created clone
+    function clone(address implementation, bytes memory data)
+        external
+        returns (address payable instance)
+    {
+        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(
+            implementation,
+            data
+        );
+
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            instance := create(0, creationPtr, creationSize)
+        }
+
+        // if the create failed, the instance address won't be set
+        if (instance == address(0)) {
+            revert CreateFail();
+        }
+    }
+
+    /// @notice Creates a clone proxy of the implementation contract with immutable args
+    /// @dev data cannot exceed 65535 bytes, since 2 bytes are used to store the data length
+    /// @param implementation The implementation contract to clone
+    /// @param salt The salt for create2
+    /// @param data Encoded immutable args
+    /// @return instance The address of the created clone
+    function cloneDeterministic(
+        address implementation,
+        bytes32 salt,
+        bytes memory data
+    ) external returns (address payable instance) {
+        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(
+            implementation,
+            data
+        );
+
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            instance := create2(0, creationPtr, creationSize, salt)
+        }
+
+        // if the create failed, the instance address won't be set
+        if (instance == address(0)) {
+            revert CreateFail();
+        }
+    }
+
+    /// @notice Predicts the address where a deterministic clone of implementation will be deployed
+    /// @dev data cannot exceed 65535 bytes, since 2 bytes are used to store the data length
+    /// @param implementation The implementation contract to clone
+    /// @param salt The salt for create2
+    /// @param data Encoded immutable args
+    /// @return predicted The predicted address of the created clone
+    /// @return exists Whether the clone already exists
+    function predictDeterministicAddress(
+        address implementation,
+        bytes32 salt,
+        bytes memory data
+    ) external view returns (address predicted, bool exists) {
+        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(
+            implementation,
+            data
+        );
+
+        bytes32 creationHash;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            creationHash := keccak256(creationPtr, creationSize)
+        }
+
+        predicted = computeAddress(salt, creationHash, address(this));
+        exists = predicted.code.length > 0;
+    }
+
+    /// @dev Returns the address where a contract will be stored if deployed via CREATE2 from a contract located at `deployer`.
+    function computeAddress(
+        bytes32 salt,
+        bytes32 bytecodeHash,
+        address deployer
+    ) internal pure returns (address) {
+        bytes32 _data = keccak256(
+            abi.encodePacked(bytes1(0xff), deployer, salt, bytecodeHash)
+        );
+        return address(uint160(uint256(_data)));
     }
 }
