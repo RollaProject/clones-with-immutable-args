@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BSD
 pragma solidity ^0.8.4;
 
+/* solhint-disable func-name-mixedcase */
+
 import "forge-std/test.sol";
 
 import {ExampleClone} from "../ExampleClone.sol";

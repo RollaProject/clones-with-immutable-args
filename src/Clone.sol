@@ -48,8 +48,8 @@ contract Clone {
         uint256 el;
         arr = new uint256[](arrLen);
         for (uint64 i = 0; i < arrLen; i++) {
+            // solhint-disable-next-line no-inline-assembly
             assembly {
-                // solhint-disable-next-line no-inline-assembly
                 el := calldataload(add(add(offset, argOffset), mul(i, 32)))
             }
             arr[i] = el;
