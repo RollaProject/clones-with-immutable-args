@@ -5,7 +5,7 @@ pragma solidity ^0.8.4;
 /// @title ClonesWithImmutableArgs
 /// @author wighawag, zefram.eth, Saw-mon & Natalie, wminshew
 /// @notice Enables creating clone contracts with immutable args
-/// @dev extended by will@0xsplits.xyz to add receive() without DELEGECALL & create2 support
+/// @dev extended by will@0xsplits.xyz to add create2 support
 /// (h/t WyseNynja https://github.com/wighawag/clones-with-immutable-args/issues/4)
 library ClonesWithImmutableArgs {
     error CreateFail();

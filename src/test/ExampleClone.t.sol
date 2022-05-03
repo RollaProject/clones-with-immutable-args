@@ -42,25 +42,4 @@ contract ExampleCloneTest is Test {
     function testGas_param4() public view {
         clone.param4();
     }
-
-    /// -----------------------------------------------------------------------
-    /// Correctness tests
-    /// -----------------------------------------------------------------------
-
-    function testCan_receiveETH(uint96 deposit) public {
-        address(clone).safeTransferETH(deposit);
-        assertEq(address(clone).balance, deposit);
-    }
-
-    function testCan_emitOnReceiveETH(uint96 deposit) public {
-        vm.expectEmit(true, true, true, true);
-        emit ReceiveETH(deposit);
-
-        address(clone).safeTransferETH(deposit);
-    }
-
-    function testCan_receiveETHTransfer(uint96 deposit) public {
-        payable(address(clone)).transfer(deposit);
-        assertEq(address(clone).balance, deposit);
-    }
 }
