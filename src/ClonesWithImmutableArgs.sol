@@ -5,7 +5,7 @@ pragma solidity ^0.8.4;
 /// @title ClonesWithImmutableArgs
 /// @author wighawag, zefram.eth
 /// @notice Enables creating clone contracts with immutable args
-/// @dev extended by will@0xsplits.xyz to add receive() without DELEGECALL & create2 support
+/// @dev extended by will@0xsplits.xyz to add create2 support
 /// (h/t WyseNynja https://github.com/wighawag/clones-with-immutable-args/issues/4)
 library ClonesWithImmutableArgs {
     error CreateFail();
@@ -24,7 +24,7 @@ library ClonesWithImmutableArgs {
         // unrealistic for memory ptr or data length to exceed 256 bits
         unchecked {
             uint256 extraLength = data.length + 2; // +2 bytes for telling how much data there is appended to the call
-            creationSize = 0x71 + extraLength;
+            creationSize = 0x41 + extraLength;
             uint256 runSize = creationSize - 10;
             uint256 dataPtr;
             // solhint-disable-next-line no-inline-assembly
@@ -51,23 +51,8 @@ library ClonesWithImmutableArgs {
                 // f3          | RETURN                |                         | [0-runSize): runtime code
 
                 // -------------------------------------------------------------------------------------------------------------
-                // RUNTIME (103 bytes + extraLength)
+                // RUNTIME (55 bytes + extraLength)
                 // -------------------------------------------------------------------------------------------------------------
-
-                //     0x000     36       calldatasize      cds                  | -
-                //     0x001     602f     push1 0x2f        0x2f cds             | -
-                // ,=< 0x003     57       jumpi                                  | -
-                // |   0x004     34       callvalue         cv                   | -
-                // |   0x005     3d       returndatasize    0 cv                 | -
-                // |   0x006     52       mstore                                 | [0, 0x20) = cv
-                // |   0x007     7f245c.. push32 0x245c..   id                   | [0, 0x20) = cv
-                // |   0x028     6020     push1 0x20        0x20 id              | [0, 0x20) = cv
-                // |   0x02a     3d       returndatasize    0 0x20 id            | [0, 0x20) = cv
-                // |   0x02b     a1       log1                                   | [0, 0x20) = cv
-                // |   0x02c     3d       returndatasize    0                    | [0, 0x20) = cv
-                // |   0x02d     3d       returndatasize    0 0                  | [0, 0x20) = cv
-                // |   0x02e     f3       return
-                // `-> 0x02f     5b       jumpdest
 
                 // 3d          | RETURNDATASIZE        | 0                       | –
                 // 3d          | RETURNDATASIZE        | 0 0                     | –
@@ -80,38 +65,29 @@ library ClonesWithImmutableArgs {
                 // 61          | PUSH2 extra           | extra 0 0 0 0           | [0, cds) = calldata
                 mstore(
                     add(ptr, 0x03),
-                    0x3d81600a3d39f336602f57343d527f0000000000000000000000000000000000
+                    0x3d81600a3d39f33d3d3d3d363d3d376100000000000000000000000000000000
                 )
-                mstore(
-                    add(ptr, 0x12),
-                    // = keccak256("ReceiveETH(uint256)")
-                    0x9e4ac34f21c619cefc926c8bd93b54bf5a39c7ab2127a895af1cc0691d7e3dff
-                )
-                mstore(
-                    add(ptr, 0x32),
-                    0x60203da13d3df35b3d3d3d3d363d3d3761000000000000000000000000000000
-                )
-                mstore(add(ptr, 0x43), shl(240, extraLength))
+                mstore(add(ptr, 0x13), shl(240, extraLength))
 
-                // 60 0x67     | PUSH1 0x67            | 0x67 extra 0 0 0 0      | [0, cds) = calldata // 0x67 (103) is runtime size - data
-                // 36          | CALLDATASIZE          | cds 0x67 extra 0 0 0 0  | [0, cds) = calldata
+                // 60 0x37     | PUSH1 0x37            | 0x37 extra 0 0 0 0      | [0, cds) = calldata // 0x37 (55) is runtime size - data
+                // 36          | CALLDATASIZE          | cds 0x37 extra 0 0 0 0  | [0, cds) = calldata
                 // 39          | CODECOPY              | 0 0 0 0                 | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 // 36          | CALLDATASIZE          | cds 0 0 0 0             | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 // 61 extra    | PUSH2 extra           | extra cds 0 0 0 0       | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 mstore(
-                    add(ptr, 0x45),
-                    0x6067363936610000000000000000000000000000000000000000000000000000
+                    add(ptr, 0x15),
+                    0x6037363936610000000000000000000000000000000000000000000000000000
                 )
-                mstore(add(ptr, 0x4b), shl(240, extraLength))
+                mstore(add(ptr, 0x1b), shl(240, extraLength))
 
                 // 01          | ADD                   | cds+extra 0 0 0 0       | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 // 3d          | RETURNDATASIZE        | 0 cds 0 0 0 0           | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 // 73 addr     | PUSH20 0x123…         | addr 0 cds 0 0 0 0      | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 mstore(
-                    add(ptr, 0x4d),
+                    add(ptr, 0x1d),
                     0x013d730000000000000000000000000000000000000000000000000000000000
                 )
-                mstore(add(ptr, 0x50), shl(0x60, implementation))
+                mstore(add(ptr, 0x20), shl(0x60, implementation))
 
                 // 5a          | GAS                   | gas addr 0 cds 0 0 0 0  | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 // f4          | DELEGATECALL          | success 0 0             | [0, cds) = calldata, [cds, cds+0x37) = extraData
@@ -120,14 +96,14 @@ library ClonesWithImmutableArgs {
                 // 93          | SWAP4                 | 0 rds success 0 rds     | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 // 80          | DUP1                  | 0 0 rds success 0 rds   | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 // 3e          | RETURNDATACOPY        | success 0 rds           | [0, rds) = return data (there might be some irrelevant leftovers in memory [rds, cds+0x37) when rds < cds+0x37)
-                // 60 0x65     | PUSH1 0x65            | 0x65 sucess 0 rds       | [0, rds) = return data
+                // 60 0x35     | PUSH1 0x35            | 0x35 sucess 0 rds       | [0, rds) = return data
                 // 57          | JUMPI                 | 0 rds                   | [0, rds) = return data
                 // fd          | REVERT                | –                       | [0, rds) = return data
                 // 5b          | JUMPDEST              | 0 rds                   | [0, rds) = return data
                 // f3          | RETURN                | –                       | [0, rds) = return data
                 mstore(
-                    add(ptr, 0x64),
-                    0x5af43d3d93803e606557fd5bf300000000000000000000000000000000000000
+                    add(ptr, 0x34),
+                    0x5af43d3d93803e603557fd5bf300000000000000000000000000000000000000
                 )
             }
 
@@ -138,7 +114,7 @@ library ClonesWithImmutableArgs {
 
             extraLength -= 2;
             uint256 counter = extraLength;
-            uint256 copyPtr = ptr + 0x71;
+            uint256 copyPtr = ptr + 0x41;
             // solhint-disable-next-line no-inline-assembly
             assembly {
                 dataPtr := add(data, 32)
