@@ -3,7 +3,7 @@ pragma solidity ^0.8.4;
 
 /* solhint-disable func-name-mixedcase */
 
-import "forge-std/test.sol";
+import "forge-std/Test.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 
 import {ExampleClone} from "../ExampleClone.sol";
