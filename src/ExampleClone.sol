@@ -12,11 +12,11 @@ contract ExampleClone is Clone {
         return _getArgUint256(20);
     }
 
-    function param3() public pure returns (uint64) {
-        return _getArgUint64(52);
+    function param3() public pure returns (uint88) {
+        return _getArgUint88(52);
     }
 
-    function param4() public pure returns (uint8) {
-        return _getArgUint8(60);
+    function param4() public pure returns (bool) {
+        return _getArgBool(63);
     }
 }

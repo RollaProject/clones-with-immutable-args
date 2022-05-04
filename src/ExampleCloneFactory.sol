@@ -29,8 +29,8 @@ contract ExampleCloneFactory {
     function createDeterministicClone(
         address param1,
         uint256 param2,
-        uint64 param3,
-        uint8 param4,
+        uint88 param3,
+        bool param4,
         bytes32 salt
     )
         external
@@ -44,8 +44,8 @@ contract ExampleCloneFactory {
     function predictDeterministicCloneAddress(
         address param1,
         uint256 param2,
-        uint64 param3,
-        uint8 param4,
+        uint88 param3,
+        bool param4,
         bytes32 salt
     )
         external
