@@ -50,6 +50,17 @@ contract Clone {
         }
     }
 
+    /// @notice Reads an immutable arg with type uint8
+    /// @param argOffset The offset of the arg in the packed data
+    /// @return arg The arg value
+    function _getArgUint8(uint256 argOffset) internal pure returns (uint8 arg) {
+        uint256 offset = _getImmutableArgsOffset();
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            arg := shr(0xf8, calldataload(add(offset, argOffset)))
+        }
+    }
+
     /// @notice Reads an immutable arg with type bool
     /// @param argOffset The offset of the arg in the packed data
     /// @return arg The arg value
