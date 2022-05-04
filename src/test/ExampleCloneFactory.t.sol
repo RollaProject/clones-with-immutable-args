@@ -24,8 +24,8 @@ contract ExampleCloneFactoryTest is Test {
     function testGas_clone(
         address param1,
         uint256 param2,
-        uint64 param3,
-        uint8 param4
+        uint88 param3,
+        bool param4
     ) public {
         factory.createClone(param1, param2, param3, param4);
     }
@@ -37,8 +37,8 @@ contract ExampleCloneFactoryTest is Test {
     function testCan_clone(
         address param1,
         uint256 param2,
-        uint64 param3,
-        uint8 param4
+        uint88 param3,
+        bool param4
     ) public {
         ExampleClone clone = factory.createClone(
             param1,
@@ -55,8 +55,8 @@ contract ExampleCloneFactoryTest is Test {
     function testCan_deterministicClone(
         address param1,
         uint256 param2,
-        uint64 param3,
-        uint8 param4,
+        uint88 param3,
+        bool param4,
         bytes32 salt
     ) public {
         ExampleClone clone = factory.createDeterministicClone(
@@ -75,8 +75,8 @@ contract ExampleCloneFactoryTest is Test {
     function testCan_predictDeterministicCloneAddress(
         address param1,
         uint256 param2,
-        uint64 param3,
-        uint8 param4,
+        uint88 param3,
+        bool param4,
         bytes32 salt
     ) public {
         (address predictedAddress, bool exists) = factory
@@ -113,8 +113,8 @@ contract ExampleCloneFactoryTest is Test {
     function testCannot_createDeterministicCloneWithSameParamsAndSalt(
         address param1,
         uint256 param2,
-        uint64 param3,
-        uint8 param4,
+        uint88 param3,
+        bool param4,
         bytes32 salt
     ) public {
         ExampleClone clone = factory.createDeterministicClone(
@@ -139,8 +139,8 @@ contract ExampleCloneFactoryTest is Test {
     function testCan_createDeterministicCloneWithSameParamsAndDifferentSalt(
         address param1,
         uint256 param2,
-        uint64 param3,
-        uint8 param4,
+        uint88 param3,
+        bool param4,
         bytes32 salt1,
         bytes32 salt2
     ) public {

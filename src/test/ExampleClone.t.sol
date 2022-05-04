@@ -20,7 +20,12 @@ contract ExampleCloneTest is Test {
     function setUp() public {
         ExampleClone implementation = new ExampleClone();
         factory = new ExampleCloneFactory(implementation);
-        clone = factory.createClone(address(this), type(uint256).max, 8008, 69);
+        clone = factory.createClone(
+            address(this),
+            type(uint256).max,
+            8008,
+            true
+        );
     }
 
     /// -----------------------------------------------------------------------

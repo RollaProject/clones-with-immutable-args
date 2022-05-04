@@ -16,8 +16,8 @@ contract ExampleCloneFactory {
     function createClone(
         address param1,
         uint256 param2,
-        uint64 param3,
-        uint8 param4
+        uint88 param3,
+        bool param4
     ) external returns (ExampleClone clone) {
         bytes memory data = abi.encodePacked(param1, param2, param3, param4);
         clone = ExampleClone(address(implementation).clone(data));
@@ -26,8 +26,8 @@ contract ExampleCloneFactory {
     function createDeterministicClone(
         address param1,
         uint256 param2,
-        uint64 param3,
-        uint8 param4,
+        uint88 param3,
+        bool param4,
         bytes32 salt
     ) external returns (ExampleClone clone) {
         bytes memory data = abi.encodePacked(param1, param2, param3, param4);
@@ -39,8 +39,8 @@ contract ExampleCloneFactory {
     function predictDeterministicCloneAddress(
         address param1,
         uint256 param2,
-        uint64 param3,
-        uint8 param4,
+        uint88 param3,
+        bool param4,
         bytes32 salt
     ) external view returns (address, bool) {
         bytes memory data = abi.encodePacked(param1, param2, param3, param4);
