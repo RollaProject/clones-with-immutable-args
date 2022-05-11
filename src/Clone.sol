@@ -17,7 +17,7 @@ contract Clone {
     {
         uint256 offset = _getImmutableArgsOffset();
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             arg := shr(0x60, calldataload(add(offset, argOffset)))
         }
     }
@@ -32,7 +32,7 @@ contract Clone {
     {
         uint256 offset = _getImmutableArgsOffset();
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             arg := calldataload(add(offset, argOffset))
         }
     }
@@ -70,7 +70,7 @@ contract Clone {
     {
         uint256 offset = _getImmutableArgsOffset();
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             arg := shr(0xa8, calldataload(add(offset, argOffset)))
         }
     }
@@ -100,7 +100,7 @@ contract Clone {
     {
         uint256 offset = _getImmutableArgsOffset();
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             arg := shr(0xf8, calldataload(add(offset, argOffset)))
         }
     }
@@ -111,7 +111,7 @@ contract Clone {
     function _getArgBool(uint256 argOffset) internal pure returns (bool arg) {
         uint256 offset = _getImmutableArgsOffset();
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             arg := shr(0xf8, calldataload(add(offset, argOffset)))
         }
     }
