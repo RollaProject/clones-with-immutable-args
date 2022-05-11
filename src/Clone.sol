@@ -15,7 +15,7 @@ contract Clone {
     {
         uint256 offset = _getImmutableArgsOffset();
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             arg := shr(0x60, calldataload(add(offset, argOffset)))
         }
     }
@@ -30,7 +30,7 @@ contract Clone {
     {
         uint256 offset = _getImmutableArgsOffset();
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             arg := calldataload(add(offset, argOffset))
         }
     }
@@ -49,7 +49,7 @@ contract Clone {
         arr = new uint256[](arrLen);
         for (uint64 i = 0; i < arrLen; i++) {
             // solhint-disable-next-line no-inline-assembly
-            assembly {
+            assembly ("memory-safe") {
                 el := calldataload(add(add(offset, argOffset), mul(i, 32)))
             }
             arr[i] = el;
@@ -67,7 +67,7 @@ contract Clone {
     {
         uint256 offset = _getImmutableArgsOffset();
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             arg := shr(0xa8, calldataload(add(offset, argOffset)))
         }
     }
@@ -78,7 +78,7 @@ contract Clone {
     function _getArgUint8(uint256 argOffset) internal pure returns (uint8 arg) {
         uint256 offset = _getImmutableArgsOffset();
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             arg := shr(0xf8, calldataload(add(offset, argOffset)))
         }
     }
@@ -89,7 +89,7 @@ contract Clone {
     function _getArgBool(uint256 argOffset) internal pure returns (bool arg) {
         uint256 offset = _getImmutableArgsOffset();
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             arg := shr(0xf8, calldataload(add(offset, argOffset)))
         }
     }
@@ -97,7 +97,7 @@ contract Clone {
     /// @return offset The offset of the packed immutable args in calldata
     function _getImmutableArgsOffset() internal pure returns (uint256 offset) {
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             offset := sub(
                 calldatasize(),
                 add(shr(240, calldataload(sub(calldatasize(), 2))), 2)

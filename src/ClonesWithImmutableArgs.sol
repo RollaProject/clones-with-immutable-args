@@ -28,7 +28,7 @@ library ClonesWithImmutableArgs {
             uint256 runSize = creationSize - 10;
             uint256 dataPtr;
             // solhint-disable-next-line no-inline-assembly
-            assembly {
+            assembly ("memory-safe") {
                 ptr := mload(0x40)
 
                 // -------------------------------------------------------------------------------------------------------------
@@ -116,12 +116,12 @@ library ClonesWithImmutableArgs {
             uint256 counter = extraLength;
             uint256 copyPtr = ptr + 0x41;
             // solhint-disable-next-line no-inline-assembly
-            assembly {
+            assembly ("memory-safe") {
                 dataPtr := add(data, 32)
             }
             for (; counter >= 32; counter -= 32) {
                 // solhint-disable-next-line no-inline-assembly
-                assembly {
+                assembly ("memory-safe") {
                     mstore(copyPtr, mload(dataPtr))
                 }
 
@@ -130,12 +130,12 @@ library ClonesWithImmutableArgs {
             }
             uint256 mask = ~(256**(32 - counter) - 1);
             // solhint-disable-next-line no-inline-assembly
-            assembly {
+            assembly ("memory-safe") {
                 mstore(copyPtr, and(mload(dataPtr), mask))
             }
             copyPtr += counter;
             // solhint-disable-next-line no-inline-assembly
-            assembly {
+            assembly ("memory-safe") {
                 mstore(copyPtr, shl(240, extraLength))
             }
         }
@@ -156,7 +156,7 @@ library ClonesWithImmutableArgs {
         );
 
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             instance := create(0, creationPtr, creationSize)
         }
 
@@ -183,7 +183,7 @@ library ClonesWithImmutableArgs {
         );
 
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             instance := create2(0, creationPtr, creationSize, salt)
         }
 
@@ -212,7 +212,7 @@ library ClonesWithImmutableArgs {
 
         bytes32 creationHash;
         // solhint-disable-next-line no-inline-assembly
-        assembly {
+        assembly ("memory-safe") {
             creationHash := keccak256(creationPtr, creationSize)
         }
 
