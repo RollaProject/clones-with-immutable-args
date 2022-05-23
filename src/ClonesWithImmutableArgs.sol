@@ -26,7 +26,7 @@ library ClonesWithImmutableArgs {
     /// @return creationSize The size of the clone to be created
     function cloneCreationCode(address implementation, bytes memory data)
         internal
-        pure
+        view
         returns (uint256 ptr, uint256 creationSize)
     {
         // unrealistic for memory ptr or data length to exceed 256 bits
@@ -151,29 +151,23 @@ library ClonesWithImmutableArgs {
             // (but also send as appended data to the delegatecall)
             // -------------------------------------------------------------------------------------------------------------
 
-            let counter := mload(data)
-            let copyPtr := add(ptr, BOOTSTRAP_LENGTH)
-            let dataPtr := add(data, ONE_WORD)
+            extraLength -= 2;
+            assembly ("memory-safe") {
+                if iszero(
+                    staticcall(
+                        gas(),
+                        0x04,
+                        add(data, 0x20),
+                        extraLength,
+                        add(ptr, 0x41),
+                        extraLength
+                    )
+                ) {
+                    invalid()
+                }
 
-            for {} true {} {
-                if lt(counter, ONE_WORD) { break }
-
-                mstore(copyPtr, mload(dataPtr))
-
-                copyPtr := add(copyPtr, ONE_WORD)
-                dataPtr := add(dataPtr, ONE_WORD)
-
-                counter := sub(counter, ONE_WORD)
+                mstore(add(add(ptr, 0x41), extraLength), shl(240, extraLength))
             }
-
-            let mask := shl(mul(0x8, sub(ONE_WORD, counter)), not(0))
-
-            mstore(copyPtr, and(mload(dataPtr), mask))
-            copyPtr := add(copyPtr, counter)
-            mstore(copyPtr, shl(0xf0, extraLength))
-
-            // Update free memory pointer
-            mstore(FREE_MEMORY_POINTER_SLOT, add(ptr, creationSize))
         }
     }
 
