@@ -18,7 +18,7 @@ library ClonesWithImmutableArgs {
     /// @return creationSize The size of the clone to be created
     function cloneCreationCode(address implementation, bytes memory data)
         internal
-        pure
+        view
         returns (uint256 ptr, uint256 creationSize)
     {
         // unrealistic for memory ptr or data length to exceed 256 bits
@@ -26,7 +26,6 @@ library ClonesWithImmutableArgs {
             uint256 extraLength = data.length + 2; // +2 bytes for telling how much data there is appended to the call
             creationSize = 0x41 + extraLength;
             uint256 runSize = creationSize - 10;
-            uint256 dataPtr;
             // solhint-disable-next-line no-inline-assembly
             assembly ("memory-safe") {
                 ptr := mload(0x40)
@@ -113,30 +112,21 @@ library ClonesWithImmutableArgs {
             // -------------------------------------------------------------------------------------------------------------
 
             extraLength -= 2;
-            uint256 counter = extraLength;
-            uint256 copyPtr = ptr + 0x41;
-            // solhint-disable-next-line no-inline-assembly
             assembly ("memory-safe") {
-                dataPtr := add(data, 32)
-            }
-            for (; counter >= 32; counter -= 32) {
-                // solhint-disable-next-line no-inline-assembly
-                assembly ("memory-safe") {
-                    mstore(copyPtr, mload(dataPtr))
+                if iszero(
+                    staticcall(
+                        gas(),
+                        0x04,
+                        add(data, 0x20),
+                        extraLength,
+                        add(ptr, 0x41),
+                        extraLength
+                    )
+                ) {
+                    invalid()
                 }
 
-                copyPtr += 32;
-                dataPtr += 32;
-            }
-            uint256 mask = ~(256**(32 - counter) - 1);
-            // solhint-disable-next-line no-inline-assembly
-            assembly ("memory-safe") {
-                mstore(copyPtr, and(mload(dataPtr), mask))
-            }
-            copyPtr += counter;
-            // solhint-disable-next-line no-inline-assembly
-            assembly ("memory-safe") {
-                mstore(copyPtr, shl(240, extraLength))
+                mstore(add(add(ptr, 0x41), extraLength), shl(240, extraLength))
             }
         }
     }
