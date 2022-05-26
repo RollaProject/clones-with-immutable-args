@@ -18,6 +18,15 @@ library ClonesWithImmutableArgs {
     uint256 private constant RECEIVE_EVENT_SIG =
         0x9e4ac34f21c619cefc926c8bd93b54bf5a39c7ab2127a895af1cc0691d7e3dff;
 
+    // abi.encodeWithSignature("IdentityPrecompileFailure()")
+    uint256 constant IdentityPrecompileFailure_error_signature = (
+        0x3a008ffa00000000000000000000000000000000000000000000000000000000
+    );
+
+    uint256 constant IdentityPrecompileFailure_error_sig_ptr = 0x0;
+
+    uint256 constant IdentityPrecompileFailure_error_length = 0x4;
+
     /// @notice Creates a clone proxy of the implementation contract with immutable args
     /// @dev data cannot exceed 65535 bytes, since 2 bytes are used to store the data length
     /// @param implementation The implementation contract to clone
@@ -163,7 +172,14 @@ library ClonesWithImmutableArgs {
                         extraLength
                     )
                 ) {
-                    invalid()
+                    mstore(
+                        IdentityPrecompileFailure_error_sig_ptr,
+                        IdentityPrecompileFailure_error_signature
+                    )
+                    revert(
+                        IdentityPrecompileFailure_error_sig_ptr,
+                        IdentityPrecompileFailure_error_length
+                    )
                 }
 
                 mstore(add(add(ptr, 0x41), extraLength), shl(240, extraLength))
