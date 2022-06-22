@@ -26,7 +26,9 @@ contract ExampleCloneFactoryTest is Test {
         uint256 param2,
         uint88 param3,
         bool param4
-    ) public {
+    )
+        public
+    {
         factory.createClone(param1, param2, param3, param4);
     }
 
@@ -39,13 +41,10 @@ contract ExampleCloneFactoryTest is Test {
         uint256 param2,
         uint88 param3,
         bool param4
-    ) public {
-        ExampleClone clone = factory.createClone(
-            param1,
-            param2,
-            param3,
-            param4
-        );
+    )
+        public
+    {
+        ExampleClone clone = factory.createClone(param1, param2, param3, param4);
         assertEq(clone.param1(), param1);
         assertEq(clone.param2(), param2);
         assertEq(clone.param3(), param3);
@@ -58,14 +57,11 @@ contract ExampleCloneFactoryTest is Test {
         uint88 param3,
         bool param4,
         bytes32 salt
-    ) public {
-        ExampleClone clone = factory.createDeterministicClone(
-            param1,
-            param2,
-            param3,
-            param4,
-            salt
-        );
+    )
+        public
+    {
+        ExampleClone clone =
+            factory.createDeterministicClone(param1, param2, param3, param4, salt);
         assertEq(clone.param1(), param1);
         assertEq(clone.param2(), param2);
         assertEq(clone.param3(), param3);
@@ -78,33 +74,20 @@ contract ExampleCloneFactoryTest is Test {
         uint88 param3,
         bool param4,
         bytes32 salt
-    ) public {
+    )
+        public
+    {
         (address predictedAddress, bool exists) = factory
-            .predictDeterministicCloneAddress(
-                param1,
-                param2,
-                param3,
-                param4,
-                salt
-            );
+        .predictDeterministicCloneAddress(param1, param2, param3, param4, salt);
 
         assertTrue(!exists);
 
-        ExampleClone clone = factory.createDeterministicClone(
-            param1,
-            param2,
-            param3,
-            param4,
-            salt
-        );
+        ExampleClone clone =
+            factory.createDeterministicClone(param1, param2, param3, param4, salt);
         assertEq(address(clone), predictedAddress);
 
         (predictedAddress, exists) = factory.predictDeterministicCloneAddress(
-            param1,
-            param2,
-            param3,
-            param4,
-            salt
+            param1, param2, param3, param4, salt
         );
         assertEq(address(clone), predictedAddress);
         assertTrue(exists);
@@ -116,24 +99,16 @@ contract ExampleCloneFactoryTest is Test {
         uint88 param3,
         bool param4,
         bytes32 salt
-    ) public {
-        ExampleClone clone = factory.createDeterministicClone(
-            param1,
-            param2,
-            param3,
-            param4,
-            salt
-        );
+    )
+        public
+    {
+        ExampleClone clone =
+            factory.createDeterministicClone(param1, param2, param3, param4, salt);
 
-        vm.expectRevert(ClonesWithImmutableArgs.CreateFail.selector);
+        vm.expectRevert(abi.encodeWithSignature("CreateFail()"));
 
-        clone = factory.createDeterministicClone(
-            param1,
-            param2,
-            param3,
-            param4,
-            salt
-        );
+        clone =
+            factory.createDeterministicClone(param1, param2, param3, param4, salt);
     }
 
     function testCan_createDeterministicCloneWithSameParamsAndDifferentSalt(
@@ -143,23 +118,15 @@ contract ExampleCloneFactoryTest is Test {
         bool param4,
         bytes32 salt1,
         bytes32 salt2
-    ) public {
+    )
+        public
+    {
         vm.assume(salt1 != salt2);
 
-        ExampleClone clone = factory.createDeterministicClone(
-            param1,
-            param2,
-            param3,
-            param4,
-            salt1
-        );
+        ExampleClone clone =
+            factory.createDeterministicClone(param1, param2, param3, param4, salt1);
 
-        clone = factory.createDeterministicClone(
-            param1,
-            param2,
-            param3,
-            param4,
-            salt2
-        );
+        clone =
+            factory.createDeterministicClone(param1, param2, param3, param4, salt2);
     }
 }

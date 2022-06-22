@@ -8,16 +8,17 @@ pragma solidity ^0.8.4;
 /// @dev extended by will@0xsplits.xyz to add create2 support
 /// (h/t WyseNynja https://github.com/wighawag/clones-with-immutable-args/issues/4)
 library ClonesWithImmutableArgs {
-    error CreateFail();
+    // abi.encodeWithSignature("CreateFail()")
+    uint256 constant CreateFail_error_signature =
+        0xebfef18800000000000000000000000000000000000000000000000000000000;
 
     // abi.encodeWithSignature("IdentityPrecompileFailure()")
-    uint256 constant IdentityPrecompileFailure_error_signature = (
-        0x3a008ffa00000000000000000000000000000000000000000000000000000000
-    );
+    uint256 constant IdentityPrecompileFailure_error_signature =
+        0x3a008ffa00000000000000000000000000000000000000000000000000000000;
 
-    uint256 constant IdentityPrecompileFailure_error_sig_ptr = 0x0;
+    uint256 constant custom_error_sig_ptr = 0x0;
 
-    uint256 constant IdentityPrecompileFailure_error_length = 0x4;
+    uint256 constant custom_error_length = 0x4;
 
     /// @notice Creates a clone proxy of the implementation contract with immutable args
     /// @dev data cannot exceed 65535 bytes, since 2 bytes are used to store the data length
@@ -133,12 +134,12 @@ library ClonesWithImmutableArgs {
                     )
                 ) {
                     mstore(
-                        IdentityPrecompileFailure_error_sig_ptr,
+                        custom_error_sig_ptr,
                         IdentityPrecompileFailure_error_signature
                     )
                     revert(
-                        IdentityPrecompileFailure_error_sig_ptr,
-                        IdentityPrecompileFailure_error_length
+                        custom_error_sig_ptr,
+                        custom_error_length
                     )
                 }
 
@@ -156,19 +157,24 @@ library ClonesWithImmutableArgs {
         internal
         returns (address payable instance)
     {
-        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(
-            implementation,
-            data
-        );
+        (uint256 creationPtr, uint256 creationSize) =
+            cloneCreationCode(implementation, data);
 
         // solhint-disable-next-line no-inline-assembly
         assembly ("memory-safe") {
             instance := create(0, creationPtr, creationSize)
-        }
 
-        // if the create failed, the instance address won't be set
-        if (instance == address(0)) {
-            revert CreateFail();
+            // if the create failed, the instance address won't be set
+            if iszero(instance) {
+                mstore(
+                    custom_error_sig_ptr,
+                    CreateFail_error_signature
+                )
+                revert(
+                    custom_error_sig_ptr,
+                    custom_error_length
+                )
+            }
         }
     }
 
@@ -182,20 +188,28 @@ library ClonesWithImmutableArgs {
         address implementation,
         bytes32 salt,
         bytes memory data
-    ) internal returns (address payable instance) {
-        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(
-            implementation,
-            data
-        );
+    )
+        internal
+        returns (address payable instance)
+    {
+        (uint256 creationPtr, uint256 creationSize) =
+            cloneCreationCode(implementation, data);
 
         // solhint-disable-next-line no-inline-assembly
         assembly ("memory-safe") {
             instance := create2(0, creationPtr, creationSize, salt)
-        }
 
-        // if the create failed, the instance address won't be set
-        if (instance == address(0)) {
-            revert CreateFail();
+            // if the create failed, the instance address won't be set
+            if iszero(instance) {
+                mstore(
+                    custom_error_sig_ptr,
+                    CreateFail_error_signature
+                )
+                revert(
+                    custom_error_sig_ptr,
+                    custom_error_length
+                )
+            }
         }
     }
 
@@ -210,11 +224,13 @@ library ClonesWithImmutableArgs {
         address implementation,
         bytes32 salt,
         bytes memory data
-    ) internal view returns (address predicted, bool exists) {
-        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(
-            implementation,
-            data
-        );
+    )
+        internal
+        view
+        returns (address predicted, bool exists)
+    {
+        (uint256 creationPtr, uint256 creationSize) =
+            cloneCreationCode(implementation, data);
 
         bytes32 creationHash;
         // solhint-disable-next-line no-inline-assembly
@@ -231,10 +247,13 @@ library ClonesWithImmutableArgs {
         bytes32 salt,
         bytes32 bytecodeHash,
         address deployer
-    ) internal pure returns (address) {
-        bytes32 _data = keccak256(
-            abi.encodePacked(bytes1(0xff), deployer, salt, bytecodeHash)
-        );
+    )
+        internal
+        pure
+        returns (address)
+    {
+        bytes32 _data =
+            keccak256(abi.encodePacked(bytes1(0xff), deployer, salt, bytecodeHash));
         return address(uint160(uint256(_data)));
     }
 }
