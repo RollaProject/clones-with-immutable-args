@@ -8,7 +8,9 @@ pragma solidity ^0.8.4;
 /// @dev extended by will@0xsplits.xyz to add create2 support
 /// (h/t WyseNynja https://github.com/wighawag/clones-with-immutable-args/issues/4)
 library ClonesWithImmutableArgs {
-    error CreateFail();
+    // abi.encodeWithSignature("CreateFail()")
+    uint256 constant CreateFail_error_signature =
+        0xebfef18800000000000000000000000000000000000000000000000000000000;
 
     uint256 private constant FREE_MEMORY_POINTER_SLOT = 0x40;
     uint256 private constant BOOTSTRAP_LENGTH = 0x6f;
@@ -19,13 +21,12 @@ library ClonesWithImmutableArgs {
         0x9e4ac34f21c619cefc926c8bd93b54bf5a39c7ab2127a895af1cc0691d7e3dff;
 
     // abi.encodeWithSignature("IdentityPrecompileFailure()")
-    uint256 constant IdentityPrecompileFailure_error_signature = (
-        0x3a008ffa00000000000000000000000000000000000000000000000000000000
-    );
+    uint256 constant IdentityPrecompileFailure_error_signature =
+        0x3a008ffa00000000000000000000000000000000000000000000000000000000;
 
-    uint256 constant IdentityPrecompileFailure_error_sig_ptr = 0x0;
+    uint256 constant custom_error_sig_ptr = 0x0;
 
-    uint256 constant IdentityPrecompileFailure_error_length = 0x4;
+    uint256 constant custom_error_length = 0x4;
 
     /// @notice Creates a clone proxy of the implementation contract with immutable args
     /// @dev data cannot exceed 65535 bytes, since 2 bytes are used to store the data length
@@ -173,12 +174,12 @@ library ClonesWithImmutableArgs {
                     )
                 ) {
                     mstore(
-                        IdentityPrecompileFailure_error_sig_ptr,
+                        custom_error_sig_ptr,
                         IdentityPrecompileFailure_error_signature
                     )
                     revert(
-                        IdentityPrecompileFailure_error_sig_ptr,
-                        IdentityPrecompileFailure_error_length
+                        custom_error_sig_ptr,
+                        custom_error_length
                     )
                 }
 
@@ -202,11 +203,18 @@ library ClonesWithImmutableArgs {
         // solhint-disable-next-line no-inline-assembly
         assembly ("memory-safe") {
             instance := create(0, creationPtr, creationSize)
-        }
 
-        // if the create failed, the instance address won't be set
-        if (instance == address(0)) {
-            revert CreateFail();
+            // if the create failed, the instance address won't be set
+            if iszero(instance) {
+                mstore(
+                    custom_error_sig_ptr,
+                    CreateFail_error_signature
+                )
+                revert(
+                    custom_error_sig_ptr,
+                    custom_error_length
+                )
+            }
         }
     }
 
@@ -230,11 +238,18 @@ library ClonesWithImmutableArgs {
         // solhint-disable-next-line no-inline-assembly
         assembly ("memory-safe") {
             instance := create2(0, creationPtr, creationSize, salt)
-        }
 
-        // if the create failed, the instance address won't be set
-        if (instance == address(0)) {
-            revert CreateFail();
+            // if the create failed, the instance address won't be set
+            if iszero(instance) {
+                mstore(
+                    custom_error_sig_ptr,
+                    CreateFail_error_signature
+                )
+                revert(
+                    custom_error_sig_ptr,
+                    custom_error_length
+                )
+            }
         }
     }
 

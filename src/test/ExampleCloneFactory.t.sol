@@ -26,7 +26,9 @@ contract ExampleCloneFactoryTest is Test {
         uint256 param2,
         uint88 param3,
         bool param4
-    ) public {
+    )
+        public
+    {
         factory.createClone(param1, param2, param3, param4);
     }
 
@@ -39,13 +41,10 @@ contract ExampleCloneFactoryTest is Test {
         uint256 param2,
         uint88 param3,
         bool param4
-    ) public {
-        ExampleClone clone = factory.createClone(
-            param1,
-            param2,
-            param3,
-            param4
-        );
+    )
+        public
+    {
+        ExampleClone clone = factory.createClone(param1, param2, param3, param4);
         assertEq(clone.param1(), param1);
         assertEq(clone.param2(), param2);
         assertEq(clone.param3(), param3);
@@ -108,7 +107,7 @@ contract ExampleCloneFactoryTest is Test {
         ExampleClone clone =
             factory.createDeterministicClone(param1, param2, param3, param4, salt);
 
-        vm.expectRevert(ClonesWithImmutableArgs.CreateFail.selector);
+        vm.expectRevert(abi.encodeWithSignature("CreateFail()"));
 
         clone =
             factory.createDeterministicClone(param1, param2, param3, param4, salt);
