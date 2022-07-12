@@ -78,7 +78,9 @@ contract ExampleCloneFactoryTest is Test {
         public
     {
         (address predictedAddress, bool exists) = factory
-        .predictDeterministicCloneAddress(param1, param2, param3, param4, salt);
+            .predictDeterministicCloneAddress(
+            param1, param2, param3, param4, salt
+        );
 
         assertTrue(!exists);
 
