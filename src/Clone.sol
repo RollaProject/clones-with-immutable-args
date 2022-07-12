@@ -108,11 +108,7 @@ contract Clone {
     /// @notice Reads an immutable arg with type bool
     /// @param argOffset The offset of the arg in the packed data
     /// @return arg The arg value
-    function _getArgBool(uint256 argOffset)
-        internal
-        pure
-        returns (bool arg)
-    {
+    function _getArgBool(uint256 argOffset) internal pure returns (bool arg) {
         uint256 offset = _getImmutableArgsOffset();
         // solhint-disable-next-line no-inline-assembly
         assembly ("memory-safe") {
@@ -121,11 +117,7 @@ contract Clone {
     }
 
     /// @return offset The offset of the packed immutable args in calldata
-    function _getImmutableArgsOffset()
-        internal
-        pure
-        returns (uint256 offset)
-    {
+    function _getImmutableArgsOffset() internal pure returns (uint256 offset) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             offset :=
