@@ -152,7 +152,7 @@ library ClonesWithImmutableArgs {
                 copyPtr += 32;
                 dataPtr += 32;
             }
-            uint256 mask = ~(256**(32 - counter) - 1);
+            uint256 mask = ~(256 ** (32 - counter) - 1);
             // solhint-disable-next-line no-inline-assembly
             assembly {
                 mstore(copyPtr, and(mload(dataPtr), mask))
@@ -174,10 +174,8 @@ library ClonesWithImmutableArgs {
         internal
         returns (address payable instance)
     {
-        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(
-            implementation,
-            data
-        );
+        (uint256 creationPtr, uint256 creationSize) =
+            cloneCreationCode(implementation, data);
 
         // solhint-disable-next-line no-inline-assembly
         assembly {
@@ -200,11 +198,12 @@ library ClonesWithImmutableArgs {
         address implementation,
         bytes32 salt,
         bytes memory data
-    ) internal returns (address payable instance) {
-        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(
-            implementation,
-            data
-        );
+    )
+        internal
+        returns (address payable instance)
+    {
+        (uint256 creationPtr, uint256 creationSize) =
+            cloneCreationCode(implementation, data);
 
         // solhint-disable-next-line no-inline-assembly
         assembly {
@@ -228,11 +227,13 @@ library ClonesWithImmutableArgs {
         address implementation,
         bytes32 salt,
         bytes memory data
-    ) internal view returns (address predicted, bool exists) {
-        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(
-            implementation,
-            data
-        );
+    )
+        internal
+        view
+        returns (address predicted, bool exists)
+    {
+        (uint256 creationPtr, uint256 creationSize) =
+            cloneCreationCode(implementation, data);
 
         bytes32 creationHash;
         // solhint-disable-next-line no-inline-assembly
@@ -249,10 +250,13 @@ library ClonesWithImmutableArgs {
         bytes32 salt,
         bytes32 bytecodeHash,
         address deployer
-    ) internal pure returns (address) {
-        bytes32 _data = keccak256(
-            abi.encodePacked(bytes1(0xff), deployer, salt, bytecodeHash)
-        );
+    )
+        internal
+        pure
+        returns (address)
+    {
+        bytes32 _data =
+            keccak256(abi.encodePacked(bytes1(0xff), deployer, salt, bytecodeHash));
         return address(uint160(uint256(_data)));
     }
 }
