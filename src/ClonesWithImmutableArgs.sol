@@ -9,8 +9,7 @@ pragma solidity ^0.8.4;
 /// (h/t WyseNynja https://github.com/wighawag/clones-with-immutable-args/issues/4)
 library ClonesWithImmutableArgs {
     // abi.encodeWithSignature("CreateFail()")
-    uint256 constant CreateFail_error_signature =
-        0xebfef18800000000000000000000000000000000000000000000000000000000;
+    uint256 constant CreateFail_error_signature = 0xebfef18800000000000000000000000000000000000000000000000000000000;
 
     // abi.encodeWithSignature("IdentityPrecompileFailure()")
     uint256 constant IdentityPrecompileFailure_error_signature =
@@ -45,10 +44,7 @@ library ClonesWithImmutableArgs {
                 // -------------------------------------------------------------------------------------------------------------
 
                 // 61 runtime  | PUSH2 runtime (r)     | r                       | –
-                mstore(
-                    ptr,
-                    0x6100000000000000000000000000000000000000000000000000000000000000
-                )
+                mstore(ptr, 0x6100000000000000000000000000000000000000000000000000000000000000)
                 mstore(add(ptr, 0x01), shl(240, runSize)) // size of the contract running bytecode (16 bits)
 
                 // creation size = 0a
@@ -72,10 +68,7 @@ library ClonesWithImmutableArgs {
                 // 3d          | RETURNDATASIZE        | 0 0 cds 0 0 0 0         | –
                 // 37          | CALLDATACOPY          | 0 0 0 0                 | [0, cds) = calldata
                 // 61          | PUSH2 extra           | extra 0 0 0 0           | [0, cds) = calldata
-                mstore(
-                    add(ptr, 0x03),
-                    0x3d81600a3d39f33d3d3d3d363d3d376100000000000000000000000000000000
-                )
+                mstore(add(ptr, 0x03), 0x3d81600a3d39f33d3d3d3d363d3d376100000000000000000000000000000000)
                 mstore(add(ptr, 0x13), shl(240, extraLength))
 
                 // 60 0x37     | PUSH1 0x37            | 0x37 extra 0 0 0 0      | [0, cds) = calldata // 0x37 (55) is runtime size - data
@@ -83,19 +76,13 @@ library ClonesWithImmutableArgs {
                 // 39          | CODECOPY              | 0 0 0 0                 | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 // 36          | CALLDATASIZE          | cds 0 0 0 0             | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 // 61 extra    | PUSH2 extra           | extra cds 0 0 0 0       | [0, cds) = calldata, [cds, cds+0x37) = extraData
-                mstore(
-                    add(ptr, 0x15),
-                    0x6037363936610000000000000000000000000000000000000000000000000000
-                )
+                mstore(add(ptr, 0x15), 0x6037363936610000000000000000000000000000000000000000000000000000)
                 mstore(add(ptr, 0x1b), shl(240, extraLength))
 
                 // 01          | ADD                   | cds+extra 0 0 0 0       | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 // 3d          | RETURNDATASIZE        | 0 cds 0 0 0 0           | [0, cds) = calldata, [cds, cds+0x37) = extraData
                 // 73 addr     | PUSH20 0x123…         | addr 0 cds 0 0 0 0      | [0, cds) = calldata, [cds, cds+0x37) = extraData
-                mstore(
-                    add(ptr, 0x1d),
-                    0x013d730000000000000000000000000000000000000000000000000000000000
-                )
+                mstore(add(ptr, 0x1d), 0x013d730000000000000000000000000000000000000000000000000000000000)
                 mstore(add(ptr, 0x20), shl(0x60, implementation))
 
                 // 5a          | GAS                   | gas addr 0 cds 0 0 0 0  | [0, cds) = calldata, [cds, cds+0x37) = extraData
@@ -110,10 +97,7 @@ library ClonesWithImmutableArgs {
                 // fd          | REVERT                | –                       | [0, rds) = return data
                 // 5b          | JUMPDEST              | 0 rds                   | [0, rds) = return data
                 // f3          | RETURN                | –                       | [0, rds) = return data
-                mstore(
-                    add(ptr, 0x34),
-                    0x5af43d3d93803e603557fd5bf300000000000000000000000000000000000000
-                )
+                mstore(add(ptr, 0x34), 0x5af43d3d93803e603557fd5bf300000000000000000000000000000000000000)
             }
 
             // -------------------------------------------------------------------------------------------------------------
@@ -123,24 +107,9 @@ library ClonesWithImmutableArgs {
 
             extraLength -= 2;
             assembly ("memory-safe") {
-                if iszero(
-                    staticcall(
-                        gas(),
-                        0x04,
-                        add(data, 0x20),
-                        extraLength,
-                        add(ptr, 0x41),
-                        extraLength
-                    )
-                ) {
-                    mstore(
-                        custom_error_sig_ptr,
-                        IdentityPrecompileFailure_error_signature
-                    )
-                    revert(
-                        custom_error_sig_ptr,
-                        custom_error_length
-                    )
+                if iszero(staticcall(gas(), 0x04, add(data, 0x20), extraLength, add(ptr, 0x41), extraLength)) {
+                    mstore(custom_error_sig_ptr, IdentityPrecompileFailure_error_signature)
+                    revert(custom_error_sig_ptr, custom_error_length)
                 }
 
                 mstore(add(add(ptr, 0x41), extraLength), shl(240, extraLength))
@@ -153,12 +122,8 @@ library ClonesWithImmutableArgs {
     /// @param implementation The implementation contract to clone
     /// @param data Encoded immutable args
     /// @return instance The address of the created clone
-    function clone(address implementation, bytes memory data)
-        internal
-        returns (address payable instance)
-    {
-        (uint256 creationPtr, uint256 creationSize) =
-            cloneCreationCode(implementation, data);
+    function clone(address implementation, bytes memory data) internal returns (address payable instance) {
+        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(implementation, data);
 
         // solhint-disable-next-line no-inline-assembly
         assembly ("memory-safe") {
@@ -166,14 +131,8 @@ library ClonesWithImmutableArgs {
 
             // if the create failed, the instance address won't be set
             if iszero(instance) {
-                mstore(
-                    custom_error_sig_ptr,
-                    CreateFail_error_signature
-                )
-                revert(
-                    custom_error_sig_ptr,
-                    custom_error_length
-                )
+                mstore(custom_error_sig_ptr, CreateFail_error_signature)
+                revert(custom_error_sig_ptr, custom_error_length)
             }
         }
     }
@@ -184,16 +143,11 @@ library ClonesWithImmutableArgs {
     /// @param salt The salt for create2
     /// @param data Encoded immutable args
     /// @return instance The address of the created clone
-    function cloneDeterministic(
-        address implementation,
-        bytes32 salt,
-        bytes memory data
-    )
+    function cloneDeterministic(address implementation, bytes32 salt, bytes memory data)
         internal
         returns (address payable instance)
     {
-        (uint256 creationPtr, uint256 creationSize) =
-            cloneCreationCode(implementation, data);
+        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(implementation, data);
 
         // solhint-disable-next-line no-inline-assembly
         assembly ("memory-safe") {
@@ -201,14 +155,8 @@ library ClonesWithImmutableArgs {
 
             // if the create failed, the instance address won't be set
             if iszero(instance) {
-                mstore(
-                    custom_error_sig_ptr,
-                    CreateFail_error_signature
-                )
-                revert(
-                    custom_error_sig_ptr,
-                    custom_error_length
-                )
+                mstore(custom_error_sig_ptr, CreateFail_error_signature)
+                revert(custom_error_sig_ptr, custom_error_length)
             }
         }
     }
@@ -220,17 +168,12 @@ library ClonesWithImmutableArgs {
     /// @param data Encoded immutable args
     /// @return predicted The predicted address of the created clone
     /// @return exists Whether the clone already exists
-    function predictDeterministicAddress(
-        address implementation,
-        bytes32 salt,
-        bytes memory data
-    )
+    function predictDeterministicAddress(address implementation, bytes32 salt, bytes memory data)
         internal
         view
         returns (address predicted, bool exists)
     {
-        (uint256 creationPtr, uint256 creationSize) =
-            cloneCreationCode(implementation, data);
+        (uint256 creationPtr, uint256 creationSize) = cloneCreationCode(implementation, data);
 
         bytes32 creationHash;
         // solhint-disable-next-line no-inline-assembly
@@ -243,17 +186,8 @@ library ClonesWithImmutableArgs {
     }
 
     /// @dev Returns the address where a contract will be stored if deployed via CREATE2 from a contract located at `deployer`.
-    function computeAddress(
-        bytes32 salt,
-        bytes32 bytecodeHash,
-        address deployer
-    )
-        internal
-        pure
-        returns (address)
-    {
-        bytes32 _data =
-            keccak256(abi.encodePacked(bytes1(0xff), deployer, salt, bytecodeHash));
+    function computeAddress(bytes32 salt, bytes32 bytecodeHash, address deployer) internal pure returns (address) {
+        bytes32 _data = keccak256(abi.encodePacked(bytes1(0xff), deployer, salt, bytecodeHash));
         return address(uint160(uint256(_data)));
     }
 }
