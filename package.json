@@ -2,7 +2,7 @@
   "name": "@rolla-finance/clones-with-immutable-args",
   "author": "Rolla Finance",
   "license": "BSD",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "Factory for deploying clones with immutable parameters.",
   "files": [
     "*.sol"
