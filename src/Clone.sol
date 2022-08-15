@@ -2,9 +2,11 @@
 pragma solidity ^0.8.4;
 
 /// @title Clone
-/// @author zefram.eth
+/// @author zefram.eth, Saw-mon & Natalie, 0xca11
 /// @notice Provides helper functions for reading immutable args from calldata
 contract Clone {
+    uint256 private constant ONE_WORD = 0x20;
+
     /// @notice Reads an immutable arg with type address
     /// @param argOffset The offset of the arg in the packed data
     /// @return arg The arg value
@@ -32,17 +34,19 @@ contract Clone {
     /// @param arrLen Number of elements in the array
     /// @return arr The array
     function _getArgUint256Array(uint256 argOffset, uint64 arrLen) internal pure returns (uint256[] memory arr) {
-        uint256 offset = _getImmutableArgsOffset();
-        uint256 el;
+        uint256 offset = _getImmutableArgsOffset() + argOffset;
         arr = new uint256[](arrLen);
-        for (uint64 i = 0; i < arrLen; i++) {
-            // solhint-disable-next-line no-inline-assembly
-            assembly ("memory-safe") {
-                el := calldataload(add(add(offset, argOffset), mul(i, 32)))
+
+        // solhint-disable-next-line no-inline-assembly
+        assembly ("memory-safe") {
+            let i
+            arrLen := mul(arrLen, ONE_WORD)
+            for {} lt(i, arrLen) {} {
+                let j := add(i, ONE_WORD)
+                mstore(add(arr, j), calldataload(add(offset, i)))
+                i := j
             }
-            arr[i] = el;
         }
-        return arr;
     }
 
     /// @notice Reads an immutable arg with type uint88
@@ -82,7 +86,7 @@ contract Clone {
     function _getImmutableArgsOffset() internal pure returns (uint256 offset) {
         // solhint-disable-next-line no-inline-assembly
         assembly ("memory-safe") {
-            offset := sub(calldatasize(), add(shr(240, calldataload(sub(calldatasize(), 2))), 2))
+            offset := sub(calldatasize(), shr(0xf0, calldataload(sub(calldatasize(), 2))))
         }
     }
 }
